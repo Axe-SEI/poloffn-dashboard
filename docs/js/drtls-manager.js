@@ -21,11 +21,18 @@ var topicPrefix = 'dwm1001NetInsep/waterpolo/GW01/dwm',        // MQTT topic pre
     };
     mqttDebug = false;          // delete this line to print all incoming MQTT messages to console (according to types set to true above)
 
-var connections = {             // default connection parameters - overridden with img/plans/connections.json values
-        uri: "wss://test.mosquitto.org:8081",  // URI to connect to
-        user: "",   // user name
-        pass: ""    // password
-    },
+// var connections = {             // default connection parameters - overridden with img/plans/connections.json values
+//         uri: "wss://test.mosquitto.org:8081",  // URI to connect to
+//         user: "",   // user name
+//         pass: ""    // password
+//     },
+var connections = {
+	  host: "test.mosquitto.org",
+	  port: 8081,
+	  path: "",   // ou "/mqtt" dependendo do broker; para test.mosquitto.org normalmente pode ficar vazio
+	  user: "",
+	  pass: ""
+	};
     nodes = [],
     gateways = [],
     surfacingNodes = {},    // list of nodes that we know about but not enough info yet to add them to UI
@@ -1488,10 +1495,25 @@ function initReconnection() {
     connectClient(connections.user, connections.pass, true);
 }
 
-function setupClient(wsUri) {
-    console.log('WS Connecting to ' + wsUri);
+// function setupClient(wsUri) {
+//     console.log('WS Connecting to ' + wsUri);
+//     var clientName = "leapsWebClient" + nc();
+//     wsClient = new Paho.MQTT.Client(wsUri, clientName);
+//     wsClient.onConnectionLost = handleConnectionLost;
+//     wsClient.onMessageArrived = handleUplinkMessage;
+// }
+
+function setupClient() {
     var clientName = "leapsWebClient" + nc();
-    wsClient = new Paho.MQTT.Client(wsUri, clientName);
+    console.log('WS Connecting to wss://' + connections.host + ':' + connections.port + (connections.path || ''));
+
+    wsClient = new Paho.MQTT.Client(
+        connections.host,
+        Number(connections.port),
+        connections.path || "",
+        clientName
+    );
+
     wsClient.onConnectionLost = handleConnectionLost;
     wsClient.onMessageArrived = handleUplinkMessage;
 }
@@ -1506,7 +1528,8 @@ function connectClient(userName, password, reconnecting) {
     try {
         wsClient.connect({
             userName: userName,
-            password: password,
+    		password: password,
+    		useSSL: true,
             onSuccess: function() {
                 connectionAttempt = 0;
                 console.log('WS client connected, subscribing');
@@ -1540,8 +1563,13 @@ function connectClient(userName, password, reconnecting) {
     }
 }
 
+// function initWorldConnections(def) {
+//     setupClient(connections.uri);
+//     connectClient(connections.user, connections.pass);
+// }
+
 function initWorldConnections(def) {
-    setupClient(connections.uri);
+    setupClient();
     connectClient(connections.user, connections.pass);
 }
 
