@@ -1427,7 +1427,12 @@ function handleGatewayMessage(topicInfo, payload) {
         console.log('GW', topicInfo, gatewayId, payload);
     }
     if (payload === null) {
-        removeGatewayUI(gatewayId);
+        // removeGatewayUI(gatewayId);
+		return;
+	if ('networkId' in payload) {
+        var color = createGatewayColor(gatewayHexId);
+        addGatewayUI(gatewayId, gatewayHexId, payload, color);
+    }
 
 	if(!gatewayHexId.includes("deca"))
 	    for (var nodeId in nodes) {
