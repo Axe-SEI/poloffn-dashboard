@@ -1378,12 +1378,12 @@ function setWorldStatus(status, additional)
 }
 
 function handleNodeMessage(topicInfo, payload) {
-    var nodeId = parseInt(topicInfo[2], 16), // node id in hex
-        direction = topicInfo[3],
-        topicName = topicInfo[4];
+    var nodeId = parseInt(topicInfo[1], 16), // node id in hex
+        direction = topicInfo[2],
+        topicName = topicInfo[3];
 
     if (!!mqttDebug && mqttDebug.node) {
-        console.log('received message from node 0x' + topicInfo[2] + ' on topic ' + topicName + ' :', payload);
+        console.log('received message from node 0x' + topicInfo[1] + ' on topic ' + topicName + ' :', payload);
     }
 
     if (direction !== 'uplink') {
@@ -1393,7 +1393,7 @@ function handleNodeMessage(topicInfo, payload) {
     }
     if (!nodeId) {
         // invalid hex node id - log and discard this message
-        console.log('Error parsing node id ' + topicInfo[2] + ' as hex num, discarding');
+        console.log('Error parsing node id ' + topicInfo[1] + ' as hex num, discarding');
         return;
     }
     try {
@@ -1419,9 +1419,9 @@ function handleNodeMessage(topicInfo, payload) {
 }
 
 function handleGatewayMessage(topicInfo, payload) {
-    var gatewayId = parseInt(topicInfo[2], 16),
-        direction = topicInfo[3],
-	gatewayHexId = topicInfo[2];
+    var gatewayId = parseInt(topicInfo[1], 16),
+        direction = topicInfo[2],
+	gatewayHexId = topicInfo[1];
    
     if (mqttDebug && mqttDebug.gws) {
         console.log('GW', topicInfo, gatewayId, payload);
@@ -1452,18 +1452,51 @@ function handleGatewayMessage(topicInfo, payload) {
     }
 }
 
+// function handleUplinkMessage(message) {
+//     var topicInfo = message.destinationName.split('/'),
+//         prefix = topicInfo[0],
+//         context = topicInfo[1];
+//     if (prefix !== topicPrefix) {
+//         // safety net, should never happen
+//         console.log('Got message with unknown prefix ' + prefix + ', discarding');
+//         return;
+//     }
+//     // wrapped-around with exception catching - exception thrown in wsClient callback functions seem to disconnect the client!
+//     try {
+//         var payload = null;     // null payload signals empty message - GW went offline and such
+//         if (message.payloadString.length > 0) {
+//             payload = $.parseJSON(message.payloadString);
+//         }
+//         switch (context) {
+//             case 'node':
+//                 handleNodeMessage(topicInfo, payload);
+//                 break;
+//             case 'gateway':
+//                 handleGatewayMessage(topicInfo, payload);
+//                 break;
+//         }
+//         refreshNodeListsIfDirty();
+//     } catch (ex) {
+//         console.log('Error parsing incoming JSON', ex);
+//     }
+// }
+
 function handleUplinkMessage(message) {
-    var topicInfo = message.destinationName.split('/'),
-        prefix = topicInfo[0],
-        context = topicInfo[1];
-    if (prefix !== topicPrefix) {
-        // safety net, should never happen
-        console.log('Got message with unknown prefix ' + prefix + ', discarding');
+    // valida prefixo completo (não só o primeiro segmento)
+    if (message.destinationName.indexOf(topicPrefix + '/') !== 0) {
+        console.log('Got message with unknown prefix ' + message.destinationName + ', discarding');
         return;
     }
-    // wrapped-around with exception catching - exception thrown in wsClient callback functions seem to disconnect the client!
+
+    // quebra o tópico em partes e remove as partes do prefixo
+    var topicInfo = message.destinationName.split('/');
+    var prefixParts = topicPrefix.split('/').length;
+    topicInfo = topicInfo.slice(prefixParts); // agora começa em "node" ou "gateway"
+
+    var context = topicInfo[0]; // "node" ou "gateway"
+
     try {
-        var payload = null;     // null payload signals empty message - GW went offline and such
+        var payload = null;
         if (message.payloadString.length > 0) {
             payload = $.parseJSON(message.payloadString);
         }
