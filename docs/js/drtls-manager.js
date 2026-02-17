@@ -6,7 +6,7 @@
  * Copyright (c) 2016-2018, LEAPS. All rights reserved.
  *
  */
-var topicPrefix = 'dwm',        // MQTT topic prefix
+var topicPrefix = 'dwm1001NetInsep/waterpolo/GW01/dwm',        // MQTT topic prefix
     connectionAttempt = 0,      // current connect attempt
     maxConnectionAttempts = 5,  // max connection attempts before giving up
     mqttDebug = {
@@ -22,7 +22,7 @@ var topicPrefix = 'dwm',        // MQTT topic prefix
     mqttDebug = false;          // delete this line to print all incoming MQTT messages to console (according to types set to true above)
 
 var connections = {             // default connection parameters - overridden with img/plans/connections.json values
-        uri: "ws://" + window.location.hostname + ":15675/ws",  // URI to connect to
+        uri: "wss://test.mosquitto.org:8081",  // URI to connect to
         user: "",   // user name
         pass: ""    // password
     },
