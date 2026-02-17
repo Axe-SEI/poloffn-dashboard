@@ -1488,17 +1488,30 @@ function handleGatewayMessage(topicInfo, payload) {
 
 function handleUplinkMessage(message) {
     // valida prefixo completo (não só o primeiro segmento)
-    if (message.destinationName.indexOf(topicPrefix + '/') !== 0) {
-        console.log('Got message with unknown prefix ' + message.destinationName + ', discarding');
-        return;
-    }
+	console.log("RX topic:", message.destinationName);
+	var tp = topicPrefix.replace(/\/+$/, ''); // remove / no fim
+	var dn = message.destinationName.replace(/\/+$/, '');
+	
+    // if (message.destinationName.indexOf(topicPrefix + '/') !== 0) {
+    //     console.log('Got message with unknown prefix ' + message.destinationName + ', discarding');
+    //     return;
+    // }
+	if (dn.indexOf(tp + '/') !== 0) {
+		console.log('Unknown prefix. expected=' + tp + ' got=' + message.destinationName);
+		return;
+	}
+
+	var parts = message.destinationName.split('/').filter(Boolean);
+	var tpParts = tp.split('/').filter(Boolean);
+	var rest = parts.slice(tpParts.length); // começa em node ou gateway
+	var context = rest[0]; // node/gateway
 
     // quebra o tópico em partes e remove as partes do prefixo
-    var topicInfo = message.destinationName.split('/');
-    var prefixParts = topicPrefix.split('/').length;
-    topicInfo = topicInfo.slice(prefixParts); // agora começa em "node" ou "gateway"
+    // var topicInfo = message.destinationName.split('/');
+    // var prefixParts = topicPrefix.split('/').length;
+    // topicInfo = topicInfo.slice(prefixParts); // agora começa em "node" ou "gateway"
 
-    var context = topicInfo[0]; // "node" ou "gateway"
+    // var context = topicInfo[0]; // "node" ou "gateway"
 
     try {
         // var payload = null;
@@ -1521,10 +1534,10 @@ function handleUplinkMessage(message) {
 		}
         switch (context) {
             case 'node':
-                handleNodeMessage(topicInfo, payload);
+                handleNodeMessage(rest, payload);
                 break;
             case 'gateway':
-                handleGatewayMessage(topicInfo, payload);
+                handleGatewayMessage(rest, payload);
                 break;
         }
         refreshNodeListsIfDirty();
