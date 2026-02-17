@@ -1496,10 +1496,24 @@ function handleUplinkMessage(message) {
     var context = topicInfo[0]; // "node" ou "gateway"
 
     try {
-        var payload = null;
-        if (message.payloadString.length > 0) {
-            payload = $.parseJSON(message.payloadString);
-        }
+        // var payload = null;
+        // if (message.payloadString.length > 0) {
+        //     payload = $.parseJSON(message.payloadString);
+        // }
+		var payload = null;
+		var ps = (message.payloadString || '').trim();
+		
+		// alguns brokers/tools/publicadores mandam "(null)" literal
+		if (ps === '' || ps === 'null' || ps === '(null)' || ps === 'undefined') {
+		    payload = null;
+		} else {
+		    try {
+		        payload = JSON.parse(ps);
+		    } catch (e) {
+		        console.log('Payload non-JSON discarded. topic=' + message.destinationName + ' payload=' + ps);
+		        return; // descarta só esta msg, sem quebrar o resto
+		    }
+		}
         switch (context) {
             case 'node':
                 handleNodeMessage(topicInfo, payload);
