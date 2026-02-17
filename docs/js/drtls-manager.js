@@ -29,7 +29,7 @@ var topicPrefix = 'dwm1001NetInsep/waterpolo/GW01/dwm',        // MQTT topic pre
 var connections = {
 	  host: "test.mosquitto.org",
 	  port: 8081,
-	  path: "",   // ou "/mqtt" dependendo do broker; para test.mosquitto.org normalmente pode ficar vazio
+	  path: "/mqtt",   // ou "/mqtt" dependendo do broker; para test.mosquitto.org normalmente pode ficar vazio
 	  user: "",
 	  pass: ""
 	};
